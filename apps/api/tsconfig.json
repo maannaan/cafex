@@ -17,8 +17,11 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@cafex/shared-types": ["../../packages/shared-types/src/index.ts"],
+      "@cafex/shared-types/*": ["../../packages/shared-types/src/*"]
+    }
   },
-  "include": ["src/**/*", "prisma/**/*"]
+  "include": ["src/**/*", "prisma/**/*", "../../packages/shared-types/src/**/*"]
 }
-

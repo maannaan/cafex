@@ -10,7 +10,7 @@ coverage
 .next/
 out/
 build/
-dist/
+apps/api/dist/
 
 # Production
 .vercel
@@ -34,4 +34,3 @@ apps/api/prisma/*.db-journal
 
 # Turbopack
 .turbo
-
