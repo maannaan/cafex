@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --cafe-bg: #14100E;
+    --cafe-surface: #1E1714;
+    --cafe-card: #281F1A;
+    --cafe-border: #3D2F27;
+    --cafe-amber: #D98838;
+    --cafe-cream: #F5EBE1;
+    --cafe-muted: #A89587;
+  }
+
+  body {
+    background-color: var(--cafe-bg);
+    color: var(--cafe-cream);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Custom glow and backdrop effects */
+.amber-glow {
+  box-shadow: 0 0 30px -5px rgba(217, 136, 56, 0.25);
+}
+
+.amber-gradient-text {
+  background: linear-gradient(135deg, #F5EBE1 0%, #D9B58C 50%, #D98838 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-gradient {
+  background: linear-gradient(180deg, rgba(38, 29, 24, 0.8) 0%, rgba(26, 20, 17, 0.95) 100%);
+  border: 1px solid rgba(217, 181, 140, 0.12);
+}
+
+.glass-nav {
+  background: rgba(20, 16, 14, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(217, 181, 140, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #14100E;
+}
+::-webkit-scrollbar-thumb {
+  background: #3D2F27;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D98838;
+}

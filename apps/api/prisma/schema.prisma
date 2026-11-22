@@ -1,0 +1,253 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum RoleType {
+  ADMIN
+  MANAGER
+  STAFF
+  CUSTOMER
+}
+
+enum FulfilmentType {
+  PICKUP
+  DINE_IN
+  DELIVERY
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PLACED
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+  PAYMENT_FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum ReservationStatus {
+  PENDING_APPROVAL
+  CONFIRMED
+  SEATED
+  COMPLETED
+  CANCELLED
+  REJECTED
+  NO_SHOW
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String?
+  name         String
+  phone        String?
+  role         RoleType      @default(CUSTOMER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orders       Order[]
+  reservations Reservation[]
+  auditLogs    AuditLog[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id             String               @id @default(uuid())
+  categoryId     String
+  category       Category             @relation(fields: [categoryId], references: [id])
+  name           String
+  slug           String               @unique
+  description    String
+  basePriceMinor Int
+  imageUrl       String
+  modelUrl       String?
+  isAvailable    Boolean              @default(true)
+  dietaryNotes   String[]
+  sortOrder      Int                  @default(0)
+  optionGroups   ProductOptionGroup[]
+  orderItems     OrderItem[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([categoryId, isAvailable])
+}
+
+model ProductOptionGroup {
+  id        String          @id @default(uuid())
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  minSelect Int             @default(0)
+  maxSelect Int             @default(1)
+  options   ProductOption[]
+}
+
+model ProductOption {
+  id              String             @id @default(uuid())
+  groupId         String
+  group           ProductOptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name            String
+  priceDeltaMinor Int                @default(0)
+  isAvailable     Boolean            @default(true)
+}
+
+model Order {
+  id                 String         @id @default(uuid())
+  orderNumber        String         @unique
+  userId             String?
+  user               User?          @relation(fields: [userId], references: [id])
+  customerName       String
+  customerEmail      String
+  customerPhone      String
+  fulfilmentType     FulfilmentType @default(PICKUP)
+  status             OrderStatus    @default(PENDING_PAYMENT)
+  subtotalMinor      Int
+  taxMinor           Int            @default(0)
+  discountMinor      Int            @default(0)
+  deliveryFeeMinor   Int            @default(0)
+  totalMinor         Int
+  notes              String?
+  cancellationReason String?
+  idempotencyKey     String?        @unique
+  items              OrderItem[]
+  payments           Payment[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id              String                    @id @default(uuid())
+  orderId         String
+  order           Order                     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product                   @relation(fields: [productId], references: [id])
+  productName     String
+  quantity        Int
+  unitPriceMinor  Int
+  lineTotalMinor  Int
+  selectedOptions OrderItemOptionSnapshot[]
+}
+
+model OrderItemOptionSnapshot {
+  id              String    @id @default(uuid())
+  orderItemId     String
+  orderItem       OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  groupName       String
+  optionName      String
+  priceDeltaMinor Int
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String        @default("RAZORPAY")
+  providerPaymentId String?       @unique
+  providerOrderId   String?
+  amountMinor       Int
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  rawWebhookPayload Json?
+  verifiedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Reservation {
+  id            String            @id @default(uuid())
+  userId        String?
+  user          User?             @relation(fields: [userId], references: [id])
+  customerName  String
+  customerEmail String
+  customerPhone String
+  date          DateTime          @db.Date
+  timeSlot      String
+  partySize     Int
+  tableNumber   String?
+  specialNotes  String?
+  status        ReservationStatus @default(PENDING_APPROVAL)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([date, timeSlot, status])
+}
+
+model ReservationCapacity {
+  id         String  @id @default(uuid())
+  dayOfWeek  Int
+  timeSlot   String
+  maxCovers  Int     @default(24)
+  maxParties Int     @default(8)
+  isActive   Boolean @default(true)
+
+  @@unique([dayOfWeek, timeSlot])
+}
+
+model Coupon {
+  id               String    @id @default(uuid())
+  code             String    @unique
+  discountType     String
+  discountValue    Int
+  minSpendMinor    Int       @default(0)
+  maxDiscountMinor Int?
+  usageLimit       Int?
+  usageCount       Int       @default(0)
+  expiresAt        DateTime?
+  isActive         Boolean   @default(true)
+}
+
+model BusinessSettings {
+  id               String   @id @default("singleton")
+  cafeName         String   @default("Cafex Roastery")
+  tagline          String   @default("Artisan Coffee & Warm Gatherings")
+  address          String   @default("100 Artisan Way, Downtown Cultural District")
+  phone            String   @default("+91 98765 43210")
+  email            String   @default("hello@cafexroastery.com")
+  currency         String   @default("INR")
+  currencySymbol   String   @default("₹")
+  timezone         String   @default("Asia/Kolkata")
+  openingHoursJson Json
+  taxPercentage    Decimal  @default(5.0)
+  deliveryEnabled  Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+}
