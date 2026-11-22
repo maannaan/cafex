@@ -135,3 +135,4 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearCart: () => set({ items: [], quote: null, couponCode: '', isDrawerOpen: false, isCheckoutOpen: false }),
 }));
+

@@ -15,3 +15,4 @@ export class CatalogController {
     return this.catalogService.getProductBySlug(slug);
   }
 }
+

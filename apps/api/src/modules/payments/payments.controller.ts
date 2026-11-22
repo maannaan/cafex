@@ -22,3 +22,4 @@ export class PaymentsController {
     return this.paymentsService.verifySandboxPayment(body.orderNumber, body.paymentId);
   }
 }
+

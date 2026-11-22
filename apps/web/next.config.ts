@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@cafex/shared-types', 'three', '@react-three/fiber', '@react-three/drei'],
+  transpilePackages: ['@cafex/shared-types', 'three'],
   images: {
     remotePatterns: [
       {
@@ -9,13 +9,6 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
-  },
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        canvas: './empty-module.ts',
-      },
-    },
   },
 };
 

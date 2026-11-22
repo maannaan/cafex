@@ -92,3 +92,4 @@ docker exec -i cafex-postgres psql -U cafex_user -d cafex_db < infra/deployment/
 
 - The signature 3D coffee cup model is based on *"Coffee Mug (School Project)"* by **Ole Gunnar Isager (FrenchBaguette)** licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
 - Attribution is permanently displayed in the public website footer colophon and documented in `docs/3d-asset-inventory.md`.
+

@@ -190,3 +190,4 @@ export interface BusinessSettingsDto {
   taxPercentage: number;
   deliveryEnabled: boolean;
 }
+

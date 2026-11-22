@@ -28,3 +28,4 @@ COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 USER nestjs
 EXPOSE 4000
 CMD ["node", "apps/api/dist/src/main.js"]
+

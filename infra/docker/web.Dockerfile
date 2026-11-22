@@ -29,3 +29,4 @@ COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 USER nextjs
 EXPOSE 3000
 CMD ["npm", "run", "start", "--workspace=@cafex/web"]
+

@@ -69,3 +69,4 @@ export class AdminController {
     return this.adminService.updateSettings(body);
   }
 }
+

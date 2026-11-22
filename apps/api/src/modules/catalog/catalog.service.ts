@@ -47,3 +47,4 @@ export class CatalogService {
     return product;
   }
 }
+
