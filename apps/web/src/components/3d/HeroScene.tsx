@@ -38,8 +38,8 @@ export function HeroScene() {
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0, 0.35, 2.9);
+    const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+    camera.position.set(0, 0.75, 2.7);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -82,10 +82,10 @@ export function HeroScene() {
     controls.dampingFactor = 0.05;
     controls.enableZoom = false;
     controls.enablePan = false;
-    controls.minPolarAngle = Math.PI / 4;
-    controls.maxPolarAngle = Math.PI / 1.75;
+    controls.minPolarAngle = Math.PI / 5;
+    controls.maxPolarAngle = Math.PI / 2.05;
     controls.autoRotate = !prefersReducedMotion;
-    controls.autoRotateSpeed = 1.5;
+    controls.autoRotateSpeed = 1.2;
     controls.target.set(0, 0, 0);
 
     // 5. Procedural Instanced Coffee Beans (Particles)
@@ -163,11 +163,12 @@ export function HeroScene() {
     });
     const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
     shadowMesh.rotation.x = -Math.PI / 2;
-    shadowMesh.position.y = -0.85;
+    shadowMesh.position.y = -0.62;
     scene.add(shadowMesh);
 
     // 7. Load User's Pasted 3D Coffee Mug Model & Center Properly
     const modelGroup = new THREE.Group();
+    modelGroup.rotation.y = 0.8; // Gentle angle showing handle and coffee depth
     scene.add(modelGroup);
 
     const loader = new GLTFLoader();
@@ -179,11 +180,11 @@ export function HeroScene() {
       (gltf) => {
         const root = gltf.scene;
 
-        // 1. Scale first to fit view nicely (approx 1.7 units)
+        // 1. Scale to fit comfortably within viewport (~1.15 units)
         const initialBox = new THREE.Box3().setFromObject(root);
         const size = initialBox.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        const targetSize = 1.7;
+        const targetSize = 1.15;
         const scaleFactor = maxDim > 0 ? targetSize / maxDim : 1;
         root.scale.setScalar(scaleFactor);
         root.updateMatrixWorld(true);
@@ -192,7 +193,7 @@ export function HeroScene() {
         const scaledBox = new THREE.Box3().setFromObject(root);
         const center = scaledBox.getCenter(new THREE.Vector3());
         root.position.sub(center);
-        root.position.y += 0.05; // Gentle elevation above shadow
+        root.position.y += 0.02; // Position gracefully above shadow plane
         root.updateMatrixWorld(true);
 
         // 3. Materials and Shadow tuning
