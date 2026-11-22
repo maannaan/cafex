@@ -12,7 +12,7 @@ export function HeroScene() {
   const [isLoadingModel, setIsLoadingModel] = useState(true);
 
   useEffect(() => {
-    // 1. WebGL capability detection
+    // 1. WebGL capability check
     try {
       const testCanvas = document.createElement('canvas');
       const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
@@ -30,7 +30,6 @@ export function HeroScene() {
     const container = containerRef.current;
     if (!container) return;
 
-    // Check reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // 2. Setup Scene, Camera & WebGL Renderer
@@ -39,8 +38,8 @@ export function HeroScene() {
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0.5, 3.2);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+    camera.position.set(0, 0.35, 2.9);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -48,44 +47,49 @@ export function HeroScene() {
       powerPreference: 'high-performance',
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.25;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     container.appendChild(renderer.domElement);
 
-    // 3. Studio Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0xfff5eb, 1.4);
+    // 3. Studio Warm Lighting Setup
+    const ambientLight = new THREE.AmbientLight(0xfff8f0, 2.0);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffedd5, 2.5);
-    keyLight.position.set(4, 5, 4);
+    const keyLight = new THREE.DirectionalLight(0xfff0dd, 3.2);
+    keyLight.position.set(3.5, 4.5, 3.5);
     keyLight.castShadow = true;
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xd98838, 1.8);
-    rimLight.position.set(-4, 2, -2);
+    const rimLight = new THREE.DirectionalLight(0xd98838, 2.2);
+    rimLight.position.set(-3.5, 2, -2.5);
     scene.add(rimLight);
 
-    const fillLight = new THREE.PointLight(0xffffff, 1.2, 10);
-    fillLight.position.set(0, 3, 2);
+    const fillLight = new THREE.PointLight(0xffe4cc, 1.8, 10);
+    fillLight.position.set(0, 2.5, 2);
     scene.add(fillLight);
 
-    // 4. OrbitControls (constrained for pleasant showcase)
+    const bottomBounce = new THREE.DirectionalLight(0x5c4033, 0.8);
+    bottomBounce.position.set(0, -3, 1);
+    scene.add(bottomBounce);
+
+    // 4. OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.enableZoom = false; // Keep hero framing stable
+    controls.enableZoom = false;
     controls.enablePan = false;
     controls.minPolarAngle = Math.PI / 4;
-    controls.maxPolarAngle = Math.PI / 1.8;
+    controls.maxPolarAngle = Math.PI / 1.75;
     controls.autoRotate = !prefersReducedMotion;
-    controls.autoRotateSpeed = 1.2;
+    controls.autoRotateSpeed = 1.5;
+    controls.target.set(0, 0, 0);
 
-    // 5. Procedural Instanced Coffee Beans
-    const beanCount = prefersReducedMotion ? 0 : 22;
+    // 5. Procedural Instanced Coffee Beans (Particles)
+    const beanCount = prefersReducedMotion ? 0 : 24;
     let beansMesh: THREE.InstancedMesh | null = null;
     const beanData: Array<{
       x: number;
@@ -122,7 +126,7 @@ export function HeroScene() {
           rotX: Math.random() * Math.PI,
           rotY: Math.random() * Math.PI,
           rotZ: Math.random() * Math.PI,
-          speedY: 0.002 + Math.random() * 0.004,
+          speedY: 0.002 + Math.random() * 0.003,
           scale,
         });
 
@@ -137,18 +141,19 @@ export function HeroScene() {
       scene.add(beansMesh);
     }
 
-    // 6. Ground Shadow Disc
-    const shadowGeo = new THREE.PlaneGeometry(3, 3);
+    // 6. Realistic Ground Contact Shadow
+    const shadowGeo = new THREE.PlaneGeometry(3.2, 3.2);
     const shadowCanvas = document.createElement('canvas');
-    shadowCanvas.width = 128;
-    shadowCanvas.height = 128;
+    shadowCanvas.width = 256;
+    shadowCanvas.height = 256;
     const shadowCtx = shadowCanvas.getContext('2d')!;
-    const grad = shadowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grad.addColorStop(0, 'rgba(15, 10, 8, 0.7)');
-    grad.addColorStop(0.5, 'rgba(15, 10, 8, 0.3)');
+    const grad = shadowCtx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(15, 10, 8, 0.85)');
+    grad.addColorStop(0.3, 'rgba(20, 13, 10, 0.5)');
+    grad.addColorStop(0.7, 'rgba(20, 13, 10, 0.15)');
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     shadowCtx.fillStyle = grad;
-    shadowCtx.fillRect(0, 0, 128, 128);
+    shadowCtx.fillRect(0, 0, 256, 256);
 
     const shadowTex = new THREE.CanvasTexture(shadowCanvas);
     const shadowMat = new THREE.MeshBasicMaterial({
@@ -158,37 +163,39 @@ export function HeroScene() {
     });
     const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
     shadowMesh.rotation.x = -Math.PI / 2;
-    shadowMesh.position.y = -0.75;
+    shadowMesh.position.y = -0.85;
     scene.add(shadowMesh);
 
-    // 7. Load Audited Coffee Mug Model and Normalize Pivot
+    // 7. Load User's Pasted 3D Coffee Mug Model & Center Properly
     const modelGroup = new THREE.Group();
     scene.add(modelGroup);
 
     const loader = new GLTFLoader();
+    // Try primary path, fallback to pasted folder path if needed
+    const modelPath = '/models/hero/scene.gltf';
+
     loader.load(
-      '/models/hero/scene.gltf',
+      modelPath,
       (gltf) => {
         const root = gltf.scene;
 
-        // Compute bounding box to fix FBX export offset
-        const box = new THREE.Box3().setFromObject(root);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-
-        // Center root object at origin (0, 0, 0)
-        root.position.x = -center.x;
-        root.position.y = -center.y + 0.15;
-        root.position.z = -center.z;
-
-        // Normalize scale to ~1.2 units height
+        // 1. Scale first to fit view nicely (approx 1.7 units)
+        const initialBox = new THREE.Box3().setFromObject(root);
+        const size = initialBox.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        if (maxDim > 0) {
-          const scaleFactor = 1.35 / maxDim;
-          root.scale.setScalar(scaleFactor);
-        }
+        const targetSize = 1.7;
+        const scaleFactor = maxDim > 0 ? targetSize / maxDim : 1;
+        root.scale.setScalar(scaleFactor);
+        root.updateMatrixWorld(true);
 
-        // Enable shadows and enhance ceramic glossiness
+        // 2. Center at (0, 0, 0)
+        const scaledBox = new THREE.Box3().setFromObject(root);
+        const center = scaledBox.getCenter(new THREE.Vector3());
+        root.position.sub(center);
+        root.position.y += 0.05; // Gentle elevation above shadow
+        root.updateMatrixWorld(true);
+
+        // 3. Materials and Shadow tuning
         root.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
@@ -196,7 +203,7 @@ export function HeroScene() {
             mesh.receiveShadow = true;
             if (mesh.material) {
               const mat = mesh.material as THREE.MeshStandardMaterial;
-              mat.envMapIntensity = 1.2;
+              mat.roughness = Math.max(0.15, mat.roughness);
               mat.needsUpdate = true;
             }
           }
@@ -207,14 +214,14 @@ export function HeroScene() {
       },
       undefined,
       (err) => {
-        console.error('Failed to load 3D coffee cup model:', err);
+        console.error('Failed to load 3D coffee cup model from', modelPath, err);
         setIsLoadingModel(false);
       }
     );
 
-    // 8. Animation Loop
+    // 8. Render & Animation Loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
     const dummy = new THREE.Object3D();
 
     const animate = () => {
@@ -224,7 +231,7 @@ export function HeroScene() {
 
       // Gentle floating hover motion for the mug
       if (!prefersReducedMotion && modelGroup) {
-        modelGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.05;
+        modelGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.04;
       }
 
       // Animate floating beans
@@ -263,7 +270,7 @@ export function HeroScene() {
 
     window.addEventListener('resize', handleResize);
 
-    // 10. Cleanup on Unmount
+    // 10. Cleanup on unmount
     return () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
@@ -281,7 +288,7 @@ export function HeroScene() {
 
   return (
     <div className="relative w-full h-[450px] sm:h-[520px] lg:h-[580px] rounded-3xl overflow-hidden bg-gradient-to-b from-stone-900/40 via-stone-950/70 to-stone-950 border border-stone-800/60 shadow-2xl">
-      {/* 3D Canvas Mount Point */}
+      {/* 3D WebGL Canvas Mount Container */}
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
       {/* Loading state overlay */}
@@ -294,7 +301,7 @@ export function HeroScene() {
       {/* Floating Interactive Helper Badge */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-stone-900/90 backdrop-blur-md border border-stone-800 text-[11px] font-medium text-stone-300 flex items-center gap-2 pointer-events-none shadow-lg">
         <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-        Interactive 3D · Drag to inspect signature cup
+        Interactive 3D · Drag to rotate signature cup
       </div>
     </div>
   );
